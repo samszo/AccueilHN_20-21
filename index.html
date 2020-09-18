@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>Mention Humanités Numérique : trombinoscope de la promotion 2020 - 2021</title>
+		<title>Mention Humanités Numériques : trombinoscope de la promotion 2020 - 2021</title>
 	    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		
 	    <!-- Bootstrap CSS -->
@@ -83,7 +83,7 @@
 <body>
 
 <div class="jumbotron">
-  <h1 class="display-3">Mention Humanités Numérique</h1>
+  <h1 class="display-3">Mention Humanités Numériques</h1>
   <hr class="my-4">
   <h2>Promotion  2020 - 2021</h2>
 </div>
@@ -142,11 +142,11 @@ var selectEtu;
 
     //récupération des données des formulaires google
     //"FormulaireGEN19.csv";//
-    //var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHni5Lu--I9WKTWGHOJ3_SBRW47sPTvxxRN6FOaGchhMztr4gm3I5C91EJq1CcGOsmfsOfa2f7PfrF/pub?gid=11903047&single=true&output=csv'            
-    var url = 'data.csv'            
+    //var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHni5Lu--I9WKTWGHOJ3_SBRW47sPTvxxRN6FOaGchhMztr4gm3I5C91EJq1CcGOsmfsOfa2f7PfrF/pub?gid=11903047&single=true&output=csv';
+    var url = 'data.csv';            
     var q = d3.queue()
         .defer(d3.csv, url)
-        //.defer(d3.csv, 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOMGeNwb-DoechnH4p4xKS87Ts7apNS4-G9lLHhXW_90BP8ZsW4oRNKObk26hM5CW-0wA2mEqg1kaO/pub?output=csv')
+        //.defer(d3.csv, url1)
         .awaitAll(function(error, results) {
             if (error) throw error;
             setData(results);
@@ -247,18 +247,19 @@ var selectEtu;
                 .text(function(d) { 
                     return d['Votre nom'].toLowerCase(); 
                         });
+            cardBody.append('h6').text(d => d['Dans quel parcours êtes vous inscris ?']);
             /*
             cardBody.append('h5').attr('class','card-title')	  			
                 .text(function(d) { 
                     return 'Projet : '+d['Projet']; 
                         });
-            */
             cardBody.append('h6').text("plus d'infos...")
                 .on("click",function(e){
                             console.log(e);
                             selectEtu = e;
                             $('#infosEtu').modal('show');
                         });
+            */
 
             //construction du layout pour les graphiques
             var html = '<div class="container"><div class="row">';
