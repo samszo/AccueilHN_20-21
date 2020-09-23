@@ -168,8 +168,8 @@ var dataPhoto, dataForm, dataFacet=[], dataDoublons={}
 
     //récupération des données des formulaires google
     //"FormulaireGEN19.csv";//
-    let url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHni5Lu--I9WKTWGHOJ3_SBRW47sPTvxxRN6FOaGchhMztr4gm3I5C91EJq1CcGOsmfsOfa2f7PfrF/pub?gid=11903047&single=true&output=csv';
-    //let url = 'data.csv';            
+    //let url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHni5Lu--I9WKTWGHOJ3_SBRW47sPTvxxRN6FOaGchhMztr4gm3I5C91EJq1CcGOsmfsOfa2f7PfrF/pub?gid=11903047&single=true&output=csv';
+    let url = 'data.csv';            
     var q = d3.queue()
         .defer(d3.csv, url)
         //.defer(d3.csv, url1)
