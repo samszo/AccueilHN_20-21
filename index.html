@@ -84,11 +84,18 @@
 
 <div class="jumbotron">
   <h1 class="display-3">Mention Humanités Numériques</h1>
-  <hr class="my-4">
   <h2>Promotion  2020 - 2021</h2>
+  <hr class="my-4">
+
+  <ul class="nav nav-tabs" id="tabFacet" role="tablist">
+  </ul>
+  <div class="tab-content" id="tabFacetContent">
+  </div>
+
 </div>
 
-	<div class="container">    
+
+    <div class="container">    
 		<div class="row" id="etuCards" >
         </div>
         
@@ -135,15 +142,34 @@
 <script>
 
 
-var dataPhoto, dataForm;
-var vals = {"Pas besoin":1, "Besoin d'approfondissement":5, "Besoin urgent":10, "je ne connais pas du tout":1,"je connais un peu":5,"je vonnais bien":10,"je suis expert(e)":20};
-var selectEtu;
+var dataPhoto, dataForm, dataFacet=[], dataDoublons={}
+    , vals = {"Pas besoin":1, "Besoin d'approfondissement":5, "Besoin urgent":10, "je ne connais pas du tout":1,"je connais un peu":5,"je vonnais bien":10,"je suis expert(e)":20
+        ,"Oui":1,"Non":1
+        ,"jamais":1,"rarement":2,"souvent":5,"je suis accro":10
+        ,"Dans quel parcours êtes vous inscris ?":"Parcours"
+        ,"Avez-vous un ordinateur personnel pour suivre les cours ?":"Ordinateur"
+        ,"Votre connexion internet personnelle est :":"Connexion"        
+        ,"Votre compte GitHub":"Compte"
+        ,"Votre compte Diigo":"Compte"
+        ,"Votre compte Zotero":"Compte"
+        ,"Vos spécialités":"Spécialités"
+        ,"Vos spécialités":"Objectifs"
+        ,"Votre formation précédente":"Formation"
+        ,"Quelles sont besoins ?":"Besoins"        
+        ,"Quelles sont vos compétences ?":"Compétences"        
+        ,"Quelles outils utilisez vous ?":"Outils"        
+        ,"Langages":"Langages"
+        ,"Langues":"Langues"
+        ,"CMS":"CMS"
+        ,"Quels réseaux sociaux":"Réseaux sociaux"
+        }
+    , selectEtu;
 
 
     //récupération des données des formulaires google
     //"FormulaireGEN19.csv";//
-    //var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHni5Lu--I9WKTWGHOJ3_SBRW47sPTvxxRN6FOaGchhMztr4gm3I5C91EJq1CcGOsmfsOfa2f7PfrF/pub?gid=11903047&single=true&output=csv';
-    var url = 'data.csv';            
+    let url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQHni5Lu--I9WKTWGHOJ3_SBRW47sPTvxxRN6FOaGchhMztr4gm3I5C91EJq1CcGOsmfsOfa2f7PfrF/pub?gid=11903047&single=true&output=csv';
+    //let url = 'data.csv';            
     var q = d3.queue()
         .defer(d3.csv, url)
         //.defer(d3.csv, url1)
@@ -165,9 +191,31 @@ var selectEtu;
             dataForm.forEach(function(d, j){
                 d.reponses = {'besoins':[],'competences':[],'outils':[]};
                 for (let i in d) {
-                    var prop = i.substring(i.indexOf("[")+1,i.indexOf("]")); 
-                    var v = d[i];
-                    var n = vals[v];
+                    //compilation des facettes
+                    let quest = i.indexOf("[") > 0 ? vals[i.substring(0, i.indexOf("[")-1)] : vals[i]; 
+                    let prop = i.substring(i.indexOf("[")+1,i.indexOf("]")); 
+                    let v = d[i];
+                    let n = vals[v];
+                    if(quest){
+                        if(dataDoublons[quest] === undefined){
+                            dataDoublons[quest]=dataFacet.length; 
+                            dataFacet.push({'label':quest,'values':[]});
+                        }
+                        let rep = prop ? prop : v;
+                        let kRep = quest+'_'+rep;
+                        if(dataDoublons[kRep] === undefined){
+                            dataDoublons[kRep]=dataFacet[dataDoublons[quest]]['values'].length;
+                            dataFacet[dataDoublons[quest]]['values'].push({
+                                'prop':rep
+                                ,'importance': 0
+                                ,'expression':v
+                                ,'ids':[]
+                            });
+                        }                        
+                        dataFacet[dataDoublons[quest]]['values'][dataDoublons[kRep]]['ids'].push(j);
+                        dataFacet[dataDoublons[quest]]['values'][dataDoublons[kRep]]['importance'] += n ? n : 1;
+                        
+                    }
                     if(i.indexOf("besoins")>0){
                         d.reponses.besoins.push({'prop':prop,'importance':n,'expression':v,'id':j});
                         //d.reponses.push({'besoins':prop,'val':n,'lib':v});
@@ -179,7 +227,64 @@ var selectEtu;
                         d.reponses.outils.push({'prop':prop,'importance':n,'expression':v,'id':j});
                     }							
                 }
-            });		
+            });	
+            
+            
+            //ajoute les tab de filtres
+            var arrFacet = d3.select("#tabFacet")
+                .selectAll("li")
+                .data(dataFacet)
+                .enter().append("li")
+                .attr('class',"nav-item")
+                .attr('role',"presentation")
+                .append("a")
+                .attr('class',function(d,i){
+                    return i==0 ? "nav-link active" : "nav-link"
+                })
+                .attr('id',function(d,i){
+                    return "tabFacet"+i
+                })
+                .attr('data-toggle',"tab")
+                .attr('role',"tab")
+                .attr('aria-controls',function(d,i){
+                    return "tabFacetContent"+i
+                })
+                .attr('aria-selected',function(d,i){
+                    return i==0 ? "true" : "false"
+                })
+                .attr('href',function(d,i){
+                    return "#tabFacetContent"+i
+                })
+                .text(d => d.label);		
+
+            //ajoute les content de filtres
+            let html = '<div class="container"><div class="row">';
+            html += '<div id="tabFacetContent__Col1" class="col-sm" style="padding-right:0px;padding-left:0px;"></div>';
+            html += '<div id="tabFacetContent__Col2" class="col-sm" style="padding-right:0px;padding-left:0px;"></div>';
+            html += '</div></div>';
+            var arrFacet = d3.select("#tabFacetContent")
+                .selectAll("div")
+                .data(dataFacet)
+                .enter().append("div")
+                .attr('class',function(d,i){
+                    return i==0 ? "tab-pane fade show active" : "tab-pane fade"
+                })
+                .attr('id',function(d,i){
+                    return "tabFacetContent"+i
+                })
+                .attr('role',"tabpanel")
+                .attr('aria-labelledby',function(d,i){
+                    return "tabFacet"+i
+                })
+                .html(function(d, i) { return html.replace(/__/gi, "_"+i+"_");});	  			
+            //Ajoute les diagrammes de filtre
+            arrFacet.append('div').attr('id',function(d,i){
+                    return "tabFacetContentDiag"+i
+                })
+                .text((d,i) => {
+                    drawGraphReponse("#tabFacetContent_"+i+"_Col1", d.label, d.values, 100);
+                });		
+            
 
             /*construction simple
             var arrDiv = d3.select("#container")
@@ -262,7 +367,7 @@ var selectEtu;
             */
 
             //construction du layout pour les graphiques
-            var html = '<div class="container"><div class="row">';
+            html = '<div class="container"><div class="row">';
             html += '<div id="etudNum__Col1" class="col-sm" style="padding-right:0px;padding-left:0px;"></div>';
             html += '<div id="etudNum__Col2" class="col-sm" style="padding-right:0px;padding-left:0px;"></div>';
             html += '<div id="etudNum__Col3" class="col-sm" style="padding-right:0px;padding-left:0px;"></div>';
@@ -281,6 +386,7 @@ var selectEtu;
                     });
 
 }
+
 
 function drawGraphReponse(idE, titre, data, size){
 	/*à voir si dimple marche mieux
@@ -301,7 +407,7 @@ function drawGraphReponse(idE, titre, data, size){
     myChart.draw();
     */
     //
-	var donut = donutChart()
+	let donut = donutChart()
 	    .width(size)
 	    .height(size)
 	    .cornerRadius(3) // sets how rounded the corners are on each slice
@@ -309,9 +415,10 @@ function drawGraphReponse(idE, titre, data, size){
 	    .variable('importance')
 	    .category('prop')
 	    .title(titre);
-    d3.select(idE)
+    let s = d3.select(idE)
         .datum(data) // bind data to the div
         .call(donut); // draw chart in div
+    console.log(idE+" graph fait");
 }
 
 //merci à https://bl.ocks.org/mbhall88/b2504f8f3e384de4ff2b9dfa60f325e2
